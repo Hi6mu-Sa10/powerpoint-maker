@@ -3,9 +3,10 @@ server.py
 PowerPoint生成MCPサーバー（stdio方式）
 Clineから直接呼び出せるMCPツールを提供する
 """
+
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 import json
 import os
 from pathlib import Path
@@ -46,6 +47,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # ツール定義
 # ─────────────────────────────────────────────
 
+
 @app.list_tools()
 async def list_tools() -> list[Tool]:
     return [
@@ -85,6 +87,24 @@ async def list_tools() -> list[Tool]:
                         "type": "string",
                         "description": "追加指示（例: '競合比較を含める', 'KPIを強調する'）",
                         "default": "",
+                    },
+                    "web_context": {
+                        "type": "array",
+                        "description": (
+                            "事前に収集したWeb情報のリスト。"
+                            "各要素は {\"number\": 1, \"title\": \"...\", \"url\": \"...\", \"summary\": \"...\"} 形式。"
+                            "指定した場合、その情報のみを根拠にコンテンツを生成し、参考文献スライドを自動追加します。"
+                        ),
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "number": {"type": "integer"},
+                                "title": {"type": "string"},
+                                "url": {"type": "string"},
+                                "summary": {"type": "string"},
+                            },
+                        },
+                        "default": [],
                     },
                     "reference_pptx": {
                         "type": "string",
@@ -186,30 +206,32 @@ async def list_tools() -> list[Tool]:
 # ツール実装
 # ─────────────────────────────────────────────
 
+
 @app.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
     try:
         if name == "generate_pptx":
             return await _handle_generate_pptx(arguments)
-        elif name == "extract_pptx_style":
+        if name == "extract_pptx_style":
             return await _handle_extract_style(arguments)
-        elif name == "list_slide_types":
+        if name == "list_slide_types":
             return await _handle_list_slide_types(arguments)
-        elif name == "suggest_slide_structure":
+        if name == "suggest_slide_structure":
             return await _handle_suggest_structure(arguments)
-        elif name == "build_pptx_from_data":
+        if name == "build_pptx_from_data":
             return await _handle_build_from_data(arguments)
-        else:
-            return [TextContent(type="text", text=f"❌ 未知のツール: {name}")]
+        return [TextContent(type="text", text=f"❌ 未知のツール: {name}")]
 
     except Exception as e:
         import traceback
+
         tb = traceback.format_exc()
-        return [TextContent(
-            type="text",
-            text=f"❌ エラーが発生しました: {type(e).__name__}: {e}\n\n詳細:\n{tb}"
-        )]
+        return [
+            TextContent(
+                type="text", text=f"❌ エラーが発生しました: {type(e).__name__}: {e}\n\n詳細:\n{tb}"
+            )
+        ]
 
 
 async def _handle_generate_pptx(args: dict[str, Any]) -> list[TextContent]:
@@ -219,12 +241,13 @@ async def _handle_generate_pptx(args: dict[str, Any]) -> list[TextContent]:
     audience = args.get("audience", "")
     style_hint = args.get("style_hint", "")
     extra_instructions = args.get("extra_instructions", "")
+    web_context = args.get("web_context", []) or []
     reference_pptx = args.get("reference_pptx", "")
     output_filename = args.get("output_filename", "")
 
     # 出力ファイル名の決定
     if not output_filename:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")
         safe_topic = "".join(c for c in topic[:20] if c.isalnum() or c in "ー_")
         output_filename = f"{timestamp}_{safe_topic}.pptx"
     elif not output_filename.endswith(".pptx"):
@@ -250,6 +273,7 @@ async def _handle_generate_pptx(args: dict[str, Any]) -> list[TextContent]:
         style_hint=style_hint,
         audience=audience,
         extra_instructions=extra_instructions,
+        web_context=web_context if web_context else None,
     )
 
     # ステップ3: PPTXを生成
@@ -257,11 +281,12 @@ async def _handle_generate_pptx(args: dict[str, Any]) -> list[TextContent]:
 
     # 結果レポート
     slide_summary = _format_slide_summary(slides)
+    web_context_info = f"\n🔍 参照情報: {len(web_context)}件のWeb情報を使用" if web_context else ""
     result = f"""✅ PowerPointを生成しました！
 
 📁 出力ファイル: {final_path}
 📊 スライド枚数: {len(slides)}枚
-🎯 テーマ: {topic}{style_info}
+🎯 テーマ: {topic}{style_info}{web_context_info}
 
 ## スライド構成
 {slide_summary}
@@ -280,10 +305,7 @@ async def _handle_extract_style(args: dict[str, Any]) -> list[TextContent]:
     save_json = args.get("save_json", False)
 
     if not Path(pptx_path).exists():
-        return [TextContent(
-            type="text",
-            text=f"❌ ファイルが見つかりません: {pptx_path}"
-        )]
+        return [TextContent(type="text", text=f"❌ ファイルが見つかりません: {pptx_path}")]
 
     output_json_path = None
     if save_json:
@@ -321,16 +343,19 @@ async def _handle_extract_style(args: dict[str, Any]) -> list[TextContent]:
 
     summary_lines.append("\n## 生スタイルデータ（JSON）")
     summary_lines.append("```json")
-    summary_lines.append(json.dumps(
-        {k: v for k, v in style.items() if k not in ["sample_text_styles", "slide_layouts"]},
-        ensure_ascii=False, indent=2
-    ))
+    summary_lines.append(
+        json.dumps(
+            {k: v for k, v in style.items() if k not in ["sample_text_styles", "slide_layouts"]},
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
     summary_lines.append("```")
 
     return [TextContent(type="text", text="\n".join(summary_lines))]
 
 
-async def _handle_list_slide_types(args: dict[str, Any]) -> list[TextContent]:
+async def _handle_list_slide_types(_args: dict[str, Any]) -> list[TextContent]:
     """list_slide_typesハンドラー"""
     slide_types = {
         "title": {
@@ -396,12 +421,11 @@ async def _handle_suggest_structure(args: dict[str, Any]) -> list[TextContent]:
         "timeline": "タイムライン・ロードマップ",
         "closing": "クロージング",
     }
-    for t in types:
-        lines.append(f"- **{t}**: {type_desc.get(t, t)}")
+    lines.extend(f"- **{t}**: {type_desc.get(t, t)}" for t in types)
 
     lines.append(
         f"\n💡 この構成でPPTXを生成するには:\n"
-        f"```\ngenerate_pptx ツールで topic=\"{topic}\" と指定してください\n```"
+        f'```\ngenerate_pptx ツールで topic="{topic}" と指定してください\n```'
     )
 
     return [TextContent(type="text", text="\n".join(lines))]
@@ -425,11 +449,16 @@ async def _handle_build_from_data(args: dict[str, Any]) -> list[TextContent]:
     elif isinstance(data, list):
         slides = data
     else:
-        return [TextContent(type="text", text="❌ スライドデータの形式が不正です。配列またはslidesキーを持つオブジェクトを渡してください。")]
+        return [
+            TextContent(
+                type="text",
+                text="❌ スライドデータの形式が不正です。配列またはslidesキーを持つオブジェクトを渡してください。",
+            )
+        ]
 
     # 出力ファイル名
     if not output_filename:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")
         output_filename = f"{timestamp}_custom.pptx"
     elif not output_filename.endswith(".pptx"):
         output_filename += ".pptx"
@@ -475,7 +504,8 @@ def _format_slide_summary(slides: list[dict[str, Any]]) -> str:
             "content": "📝",
             "two_column": "⬛",
             "timeline": "📅",
-            "closing": "🙏",
+        "closing": "🙏",
+        "references": "📚",
         }.get(t, "▪️")
         lines.append(f"{i:2d}. {type_icon} [{t}] {title}")
     return "\n".join(lines)
@@ -484,6 +514,7 @@ def _format_slide_summary(slides: list[dict[str, Any]]) -> str:
 # ─────────────────────────────────────────────
 # エントリーポイント
 # ─────────────────────────────────────────────
+
 
 async def main() -> None:
     async with stdio_server() as (read_stream, write_stream):
@@ -496,4 +527,5 @@ async def main() -> None:
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

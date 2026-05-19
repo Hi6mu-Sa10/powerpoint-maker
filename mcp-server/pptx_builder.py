@@ -2,6 +2,7 @@
 pptx_builder.py
 スライド構成データ（dict）を受け取り、python-pptxでPPTXファイルを生成するモジュール
 """
+
 from __future__ import annotations
 
 import os
@@ -17,15 +18,15 @@ from pptx.util import Inches, Pt
 # デフォルトカラーパレット（スタイル未指定時）
 # ─────────────────────────────────────────────
 DEFAULT_PALETTE = {
-    "bg_title": RGBColor(0x1F, 0x35, 0x64),      # ダークネイビー
-    "bg_section": RGBColor(0x2E, 0x74, 0xB5),     # ミッドブルー
-    "bg_content": RGBColor(0xFF, 0xFF, 0xFF),      # ホワイト
-    "accent": RGBColor(0x00, 0xB0, 0xF0),          # ライトブルー
-    "text_light": RGBColor(0xFF, 0xFF, 0xFF),      # ホワイトテキスト
-    "text_dark": RGBColor(0x1F, 0x35, 0x64),       # ダークネイビーテキスト
-    "text_sub": RGBColor(0x40, 0x40, 0x40),        # ダークグレー
-    "text_bullet": RGBColor(0x26, 0x26, 0x26),     # ほぼ黒
-    "divider": RGBColor(0x00, 0xB0, 0xF0),         # アクセントブルー
+    "bg_title": RGBColor(0x1F, 0x35, 0x64),  # ダークネイビー
+    "bg_section": RGBColor(0x2E, 0x74, 0xB5),  # ミッドブルー
+    "bg_content": RGBColor(0xFF, 0xFF, 0xFF),  # ホワイト
+    "accent": RGBColor(0x00, 0xB0, 0xF0),  # ライトブルー
+    "text_light": RGBColor(0xFF, 0xFF, 0xFF),  # ホワイトテキスト
+    "text_dark": RGBColor(0x1F, 0x35, 0x64),  # ダークネイビーテキスト
+    "text_sub": RGBColor(0x40, 0x40, 0x40),  # ダークグレー
+    "text_bullet": RGBColor(0x26, 0x26, 0x26),  # ほぼ黒
+    "divider": RGBColor(0x00, 0xB0, 0xF0),  # アクセントブルー
 }
 
 DEFAULT_FONTS = {
@@ -94,10 +95,8 @@ def _add_text_box(
     wrap: bool = True,
 ) -> Any:
     """テキストボックスを追加"""
-    txBox = slide.shapes.add_textbox(
-        Inches(left), Inches(top), Inches(width), Inches(height)
-    )
-    tf = txBox.text_frame
+    tx_box = slide.shapes.add_textbox(Inches(left), Inches(top), Inches(width), Inches(height))
+    tf = tx_box.text_frame
     tf.word_wrap = wrap
     p = tf.paragraphs[0]
     p.alignment = align
@@ -107,7 +106,7 @@ def _add_text_box(
     run.font.size = Pt(font_size)
     run.font.bold = bold
     run.font.color.rgb = color
-    return txBox
+    return tx_box
 
 
 def _add_rect(
@@ -140,6 +139,7 @@ def _add_rect(
 # スライドタイプ別レンダラー
 # ─────────────────────────────────────────────
 
+
 def _render_title_slide(
     prs: Presentation,
     data: dict[str, Any],
@@ -160,9 +160,14 @@ def _render_title_slide(
     _add_text_box(
         slide,
         data.get("title", "タイトルをここに入力"),
-        0.75, 1.7, 8.5, 1.6,
-        fonts["title"], 36,
-        palette["text_light"], bold=True,
+        0.75,
+        1.7,
+        8.5,
+        1.6,
+        fonts["title"],
+        36,
+        palette["text_light"],
+        bold=True,
         align=PP_ALIGN.LEFT,
     )
 
@@ -170,9 +175,14 @@ def _render_title_slide(
     _add_text_box(
         slide,
         data.get("subtitle", "サブタイトル・概要をここに入力"),
-        0.75, 3.5, 8.5, 1.0,
-        fonts["body"], 20,
-        palette["accent"], bold=False,
+        0.75,
+        3.5,
+        8.5,
+        1.0,
+        fonts["body"],
+        20,
+        palette["accent"],
+        bold=False,
         align=PP_ALIGN.LEFT,
     )
 
@@ -183,9 +193,14 @@ def _render_title_slide(
     _add_text_box(
         slide,
         data.get("meta", "20XX年XX月　発表者氏名　所属部署"),
-        0.75, 4.85, 8.5, 0.5,
-        fonts["body"], 14,
-        RGBColor(0xCC, 0xCC, 0xCC), bold=False,
+        0.75,
+        4.85,
+        8.5,
+        0.5,
+        fonts["body"],
+        14,
+        RGBColor(0xCC, 0xCC, 0xCC),
+        bold=False,
         align=PP_ALIGN.LEFT,
     )
 
@@ -209,9 +224,14 @@ def _render_agenda_slide(
     _add_text_box(
         slide,
         data.get("title", "目次"),
-        0.4, 0.15, 9.0, 1.0,
-        fonts["title"], 28,
-        palette["text_light"], bold=True,
+        0.4,
+        0.15,
+        9.0,
+        1.0,
+        fonts["title"],
+        28,
+        palette["text_light"],
+        bold=True,
         align=PP_ALIGN.LEFT,
     )
 
@@ -229,20 +249,31 @@ def _render_agenda_slide(
         # 番号バッジ
         _add_rect(slide, 0.5, y, 0.5, 0.45, palette["bg_section"])
         _add_text_box(
-            slide, num_str,
-            0.5, y, 0.5, 0.45,
-            fonts["title"], 14,
-            palette["text_light"], bold=True,
+            slide,
+            num_str,
+            0.5,
+            y,
+            0.5,
+            0.45,
+            fonts["title"],
+            14,
+            palette["text_light"],
+            bold=True,
             align=PP_ALIGN.CENTER,
         )
 
         # 項目テキスト
         _add_text_box(
             slide,
-            item.get("text", f"アジェンダ {i+1}"),
-            1.2, y, 8.0, 0.45,
-            fonts["body"], 18,
-            palette["text_dark"], bold=False,
+            item.get("text", f"アジェンダ {i + 1}"),
+            1.2,
+            y,
+            8.0,
+            0.45,
+            fonts["body"],
+            18,
+            palette["text_dark"],
+            bold=False,
             align=PP_ALIGN.LEFT,
         )
 
@@ -267,10 +298,16 @@ def _render_section_slide(
     section_num = data.get("section_number", "")
     if section_num:
         _add_text_box(
-            slide, f"SECTION  {section_num}",
-            0.5, 2.2, 9.0, 0.6,
-            fonts["body"], 14,
-            RGBColor(0xCC, 0xEE, 0xFF), bold=False,
+            slide,
+            f"SECTION  {section_num}",
+            0.5,
+            2.2,
+            9.0,
+            0.6,
+            fonts["body"],
+            14,
+            RGBColor(0xCC, 0xEE, 0xFF),
+            bold=False,
             align=PP_ALIGN.LEFT,
         )
 
@@ -278,9 +315,14 @@ def _render_section_slide(
     _add_text_box(
         slide,
         data.get("title", "セクションタイトル"),
-        0.5, 2.9, 9.0, 1.8,
-        fonts["title"], 36,
-        palette["text_light"], bold=True,
+        0.5,
+        2.9,
+        9.0,
+        1.8,
+        fonts["title"],
+        36,
+        palette["text_light"],
+        bold=True,
         align=PP_ALIGN.LEFT,
     )
 
@@ -305,9 +347,14 @@ def _render_content_slide(
     _add_text_box(
         slide,
         data.get("title", "スライドタイトル"),
-        0.4, 0.1, 9.0, 1.0,
-        fonts["title"], 26,
-        palette["text_light"], bold=True,
+        0.4,
+        0.1,
+        9.0,
+        1.0,
+        fonts["title"],
+        26,
+        palette["text_light"],
+        bold=True,
         align=PP_ALIGN.LEFT,
     )
 
@@ -329,18 +376,30 @@ def _render_content_slide(
             sub = ""
 
         _add_text_box(
-            slide, text,
-            0.65, y, 9.0, 0.42,
-            fonts["body"], 16,
-            palette["text_bullet"], bold=False,
+            slide,
+            text,
+            0.65,
+            y,
+            9.0,
+            0.42,
+            fonts["body"],
+            16,
+            palette["text_bullet"],
+            bold=False,
             align=PP_ALIGN.LEFT,
         )
         if sub:
             _add_text_box(
-                slide, f"  → {sub}",
-                0.85, y + 0.38, 8.8, 0.32,
-                fonts["body"], 12,
-                palette["text_sub"], bold=False,
+                slide,
+                f"  → {sub}",
+                0.85,
+                y + 0.38,
+                8.8,
+                0.32,
+                fonts["body"],
+                12,
+                palette["text_sub"],
+                bold=False,
                 align=PP_ALIGN.LEFT,
             )
 
@@ -349,10 +408,16 @@ def _render_content_slide(
     if note:
         _add_rect(slide, 0.4, 6.9, 9.2, 0.04, palette["divider"])
         _add_text_box(
-            slide, f"📝 {note}",
-            0.4, 6.95, 9.2, 0.4,
-            fonts["body"], 10,
-            palette["text_sub"], bold=False,
+            slide,
+            f"📝 {note}",
+            0.4,
+            6.95,
+            9.2,
+            0.4,
+            fonts["body"],
+            10,
+            palette["text_sub"],
+            bold=False,
             align=PP_ALIGN.LEFT,
         )
 
@@ -377,9 +442,14 @@ def _render_two_column_slide(
     _add_text_box(
         slide,
         data.get("title", "スライドタイトル"),
-        0.4, 0.1, 9.0, 1.0,
-        fonts["title"], 26,
-        palette["text_light"], bold=True,
+        0.4,
+        0.1,
+        9.0,
+        1.0,
+        fonts["title"],
+        26,
+        palette["text_light"],
+        bold=True,
         align=PP_ALIGN.LEFT,
     )
 
@@ -392,10 +462,16 @@ def _render_two_column_slide(
         if col_title:
             _add_rect(slide, x_offset, 1.4, 4.5, 0.45, palette["bg_section"])
             _add_text_box(
-                slide, col_title,
-                x_offset, 1.4, 4.5, 0.45,
-                fonts["title"], 14,
-                palette["text_light"], bold=True,
+                slide,
+                col_title,
+                x_offset,
+                1.4,
+                4.5,
+                0.45,
+                fonts["title"],
+                14,
+                palette["text_light"],
+                bold=True,
                 align=PP_ALIGN.CENTER,
             )
 
@@ -404,10 +480,16 @@ def _render_two_column_slide(
             y = 2.05 + j * 0.65
             _add_rect(slide, x_offset + 0.05, y + 0.15, 0.10, 0.10, palette["accent"])
             _add_text_box(
-                slide, str(item),
-                x_offset + 0.25, y, 4.2, 0.55,
-                fonts["body"], 14,
-                palette["text_bullet"], bold=False,
+                slide,
+                str(item),
+                x_offset + 0.25,
+                y,
+                4.2,
+                0.55,
+                fonts["body"],
+                14,
+                palette["text_bullet"],
+                bold=False,
                 align=PP_ALIGN.LEFT,
             )
 
@@ -435,9 +517,14 @@ def _render_timeline_slide(
     _add_text_box(
         slide,
         data.get("title", "ロードマップ"),
-        0.4, 0.1, 9.0, 1.0,
-        fonts["title"], 26,
-        palette["text_light"], bold=True,
+        0.4,
+        0.1,
+        9.0,
+        1.0,
+        fonts["title"],
+        26,
+        palette["text_light"],
+        bold=True,
         align=PP_ALIGN.LEFT,
     )
 
@@ -457,10 +544,16 @@ def _render_timeline_slide(
         # フェーズラベル
         _add_rect(slide, center_x, 1.45, 0.6, 1.9, palette["bg_section"])
         _add_text_box(
-            slide, ms.get("phase", f"P{i+1}"),
-            center_x, 1.5, 0.6, 1.8,
-            fonts["title"], 11,
-            palette["text_light"], bold=True,
+            slide,
+            ms.get("phase", f"P{i + 1}"),
+            center_x,
+            1.5,
+            0.6,
+            1.8,
+            fonts["title"],
+            11,
+            palette["text_light"],
+            bold=True,
             align=PP_ALIGN.CENTER,
         )
 
@@ -469,20 +562,124 @@ def _render_timeline_slide(
 
         # 期間ラベル
         _add_text_box(
-            slide, ms.get("period", ""),
-            x, 3.85, col_w, 0.35,
-            fonts["body"], 11,
-            palette["text_dark"], bold=True,
+            slide,
+            ms.get("period", ""),
+            x,
+            3.85,
+            col_w,
+            0.35,
+            fonts["body"],
+            11,
+            palette["text_dark"],
+            bold=True,
             align=PP_ALIGN.CENTER,
         )
 
         # マイルストーン内容
         _add_text_box(
-            slide, ms.get("description", ""),
-            x, 4.3, col_w, 1.8,
-            fonts["body"], 11,
-            palette["text_sub"], bold=False,
+            slide,
+            ms.get("description", ""),
+            x,
+            4.3,
+            col_w,
+            1.8,
+            fonts["body"],
+            11,
+            palette["text_sub"],
+            bold=False,
             align=PP_ALIGN.CENTER,
+        )
+
+
+def _render_references_slide(
+    prs: Presentation,
+    data: dict[str, Any],
+    palette: dict[str, RGBColor],
+    fonts: dict[str, str],
+) -> None:
+    """参考文献スライドを生成"""
+    slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(slide_layout)
+
+    _set_bg_color(slide, palette["bg_content"])
+
+    # ヘッダーバー
+    _add_rect(slide, 0, 0, 10.0, 1.2, palette["bg_title"])
+    _add_rect(slide, 0, 1.2, 10.0, 0.06, palette["accent"])
+
+    # スライドタイトル
+    _add_text_box(
+        slide,
+        data.get("title", "参考文献"),
+        0.4,
+        0.1,
+        9.0,
+        1.0,
+        fonts["title"],
+        26,
+        palette["text_light"],
+        bold=True,
+        align=PP_ALIGN.LEFT,
+    )
+
+    items = data.get("items", [])
+    start_y = 1.45
+    spacing = 0.75
+
+    for i, item in enumerate(items):
+        y = start_y + i * spacing
+        num = item.get("number", i + 1)
+        title = item.get("title", "")
+        url = item.get("url", "")
+        accessed = item.get("accessed", "")
+
+        # 番号バッジ
+        _add_rect(slide, 0.4, y, 0.38, 0.38, palette["bg_section"])
+        _add_text_box(
+            slide,
+            f"[{num}]",
+            0.4,
+            y,
+            0.38,
+            0.38,
+            fonts["title"],
+            11,
+            palette["text_light"],
+            bold=True,
+            align=PP_ALIGN.CENTER,
+        )
+
+        # タイトル行
+        _add_text_box(
+            slide,
+            title,
+            0.9,
+            y,
+            8.7,
+            0.38,
+            fonts["body"],
+            13,
+            palette["text_dark"],
+            bold=True,
+            align=PP_ALIGN.LEFT,
+        )
+
+        # URL行
+        url_text = url
+        if accessed:
+            url_text = f"{url}　（参照: {accessed}）"
+        _add_text_box(
+            slide,
+            url_text,
+            0.9,
+            y + 0.38,
+            8.7,
+            0.32,
+            fonts["body"],
+            10,
+            palette["text_sub"],
+            bold=False,
+            align=PP_ALIGN.LEFT,
         )
 
 
@@ -503,9 +700,14 @@ def _render_closing_slide(
     _add_text_box(
         slide,
         data.get("title", "Thank You"),
-        0.75, 2.7, 8.5, 1.4,
-        fonts["title"], 44,
-        palette["text_light"], bold=True,
+        0.75,
+        2.7,
+        8.5,
+        1.4,
+        fonts["title"],
+        44,
+        palette["text_light"],
+        bold=True,
         align=PP_ALIGN.LEFT,
     )
 
@@ -514,19 +716,30 @@ def _render_closing_slide(
     _add_text_box(
         slide,
         data.get("message", "ご質問・ご意見はお気軽にどうぞ"),
-        0.75, 4.4, 8.5, 0.6,
-        fonts["body"], 18,
-        palette["accent"], bold=False,
+        0.75,
+        4.4,
+        8.5,
+        0.6,
+        fonts["body"],
+        18,
+        palette["accent"],
+        bold=False,
         align=PP_ALIGN.LEFT,
     )
 
     contact = data.get("contact", "")
     if contact:
         _add_text_box(
-            slide, contact,
-            0.75, 5.2, 8.5, 0.6,
-            fonts["body"], 14,
-            RGBColor(0xCC, 0xCC, 0xCC), bold=False,
+            slide,
+            contact,
+            0.75,
+            5.2,
+            8.5,
+            0.6,
+            fonts["body"],
+            14,
+            RGBColor(0xCC, 0xCC, 0xCC),
+            bold=False,
             align=PP_ALIGN.LEFT,
         )
 
@@ -542,6 +755,7 @@ SLIDE_RENDERERS = {
     "content": _render_content_slide,
     "two_column": _render_two_column_slide,
     "timeline": _render_timeline_slide,
+    "references": _render_references_slide,
     "closing": _render_closing_slide,
 }
 
@@ -564,7 +778,7 @@ def build_pptx(
     """
     prs = Presentation()
     prs.slide_width = Inches(10)
-    prs.slide_height = Inches(7.5)
+    prs.slide_height = Inches(5.625)
 
     palette = _build_palette(style)
     fonts = _build_fonts(style)
@@ -611,7 +825,10 @@ if __name__ == "__main__":
             "type": "content",
             "title": "現状の課題",
             "bullets": [
-                {"text": "手作業によるデータ入力に多大な時間を消費", "sub": "1日あたり約3時間の工数"},
+                {
+                    "text": "手作業によるデータ入力に多大な時間を消費",
+                    "sub": "1日あたり約3時間の工数",
+                },
                 {"text": "情報の分散により意思決定が遅延", "sub": "部署間の連携ロスが発生"},
                 {"text": "ナレッジの属人化リスク", "sub": "退職・異動時の業務継続性に課題"},
                 {"text": "レポート作成の煩雑さ", "sub": "週次レポートに平均2時間"},
@@ -623,11 +840,21 @@ if __name__ == "__main__":
             "title": "AI導入前後の比較",
             "left": {
                 "title": "導入前（現状）",
-                "items": ["手動でのデータ集計", "メール・Excel中心の管理", "レポートは手作業", "ナレッジが個人管理"],
+                "items": [
+                    "手動でのデータ集計",
+                    "メール・Excel中心の管理",
+                    "レポートは手作業",
+                    "ナレッジが個人管理",
+                ],
             },
             "right": {
                 "title": "導入後（目標）",
-                "items": ["自動データ収集・集計", "統合ダッシュボード管理", "レポート自動生成", "AI活用ナレッジ共有"],
+                "items": [
+                    "自動データ収集・集計",
+                    "統合ダッシュボード管理",
+                    "レポート自動生成",
+                    "AI活用ナレッジ共有",
+                ],
             },
         },
         {
