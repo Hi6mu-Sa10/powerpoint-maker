@@ -1,0 +1,108 @@
+# PowerPoint Maker - Cline セットアップ & 操作ガイド
+
+## このリポジトリについて
+PowerPoint自動生成MCPサーバーです。Amazon Bedrock (Claude Sonnet) と python-pptx を組み合わせています。
+
+---
+
+## 初回セットアップ手順（Clineが自動実行できます）
+
+ユーザーから「セットアップして」「初期設定して」と言われたら、以下を順番に実行してください。
+
+### Step 1: 依存ライブラリの確認・インストール
+```bash
+pip show python-pptx python-dotenv boto3 mcp
+```
+不足があれば:
+```bash
+pip install -r requirements.txt
+```
+
+### Step 2: .envファイルの確認
+`.env` ファイルが存在するか確認し、なければ `.env.example` からコピーしてください。
+必要な設定値をユーザーに確認してください:
+- AWS_PROFILE (AWSプロファイル名)
+- AWS_REGION (リージョン、デフォルト: ap-northeast-1)
+- BEDROCK_ENDPOINT_URL (VPCエンドポイントURL)
+- BEDROCK_MODEL_ID (モデルID、デフォルト: us.anthropic.claude-sonnet-4-5)
+
+### Step 3: MCPサーバーの登録
+`%APPDATA%\Code\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json`
+に以下のエントリを追加してください（存在しない場合は作成）:
+
+```json
+"powerpoint-maker": {
+  "autoApprove": [
+    "generate_pptx",
+    "extract_pptx_style",
+    "list_slide_types",
+    "suggest_slide_structure",
+    "build_pptx_from_data"
+  ],
+  "disabled": false,
+  "timeout": 120,
+  "type": "stdio",
+  "command": "python",
+  "args": ["<このリポジトリのパス>\\mcp-server\\server.py"],
+  "env": {
+    "AWS_REGION": "<AWS_REGION値>",
+    "AWS_PROFILE": "<AWS_PROFILE値>",
+    "BEDROCK_ENDPOINT_URL": "<BEDROCK_ENDPOINT_URL値>",
+    "BEDROCK_MODEL_ID": "<BEDROCK_MODEL_ID値>",
+    "OUTPUT_DIR": "<このリポジトリのパス>\\output",
+    "PYTHONIOENCODING": "utf-8"
+  }
+}
+```
+
+### Step 4: 動作確認
+```bash
+python mcp-server/pptx_builder.py
+```
+`output/sample.pptx` が生成されれば成功です。
+
+### Step 5: VSCode再起動
+MCPサーバーを有効化するためにVSCodeを再起動するようユーザーに案内してください。
+
+---
+
+## PPTX生成の使い方
+
+ユーザーから「〇〇の資料を作って」と言われたら、`generate_pptx` ツールを使ってください。
+
+### パラメータの読み取り方
+- テーマ → `topic`
+- 枚数 → `num_slides`（デフォルト8）
+- 対象者 → `audience`（例: 経営層, 技術者）
+- スタイル指定 → `style_hint`（例: フォーマル, カジュアル）
+- 既存PPTXのスタイルを使う → `reference_pptx` にパスを指定
+- ファイル名指定 → `output_filename`
+
+### 例
+ユーザー: 「AI活用の提案資料を経営層向けに10枚で」
+→ generate_pptx(topic="AI活用による業務効率化提案", num_slides=10, audience="経営層")
+
+ユーザー: 「このPPTX(C:\xxx\base.pptx)のデザインで新製品紹介資料を」
+→ generate_pptx(topic="新製品紹介", reference_pptx="C:\\xxx\\base.pptx")
+
+---
+
+## スライドの修正・再生成
+
+生成後にユーザーが修正を希望する場合:
+1. `build_pptx_from_data` ツールに修正済みJSONを渡して再生成
+2. または `generate_pptx` で追加指示を `extra_instructions` に含めて再生成
+
+---
+
+## トラブルシューティング
+
+### MCPサーバーが起動しない
+- Python がインストールされているか確認: `python --version`
+- 依存ライブラリを再インストール: `pip install -r requirements.txt`
+- `.env` の設定値が正しいか確認
+
+### Bedrock接続エラー
+- AWS認証情報が設定されているか確認: `aws sts get-caller-identity --profile <プロファイル名>`
+- VPCエンドポイントのURLが正しいか確認
+- VPC内ネットワークからアクセスしているか確認
