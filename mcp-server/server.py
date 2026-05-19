@@ -5,11 +5,11 @@ Clineから直接呼び出せるMCPツールを提供する
 """
 from __future__ import annotations
 
+from datetime import datetime
 import json
 import os
-import sys
-from datetime import datetime
 from pathlib import Path
+import sys
 from typing import Any
 
 # プロジェクトルートをパスに追加
@@ -24,13 +24,12 @@ load_dotenv(str(_ROOT / ".env"))
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import (
-    CallToolResult,
     TextContent,
     Tool,
 )
 
-from pptx_builder import SLIDE_RENDERERS, build_pptx
-from slide_generator import generate_slides, refine_slide, suggest_slide_types
+from pptx_builder import build_pptx
+from slide_generator import generate_slides, suggest_slide_types
 from style_extractor import extract_style_to_json
 
 # ─────────────────────────────────────────────

@@ -1,0 +1,77 @@
+[tool.ruff]
+# Python 3.13 をターゲット
+target-version = "py313"
+line-length = 100
+
+# チェック対象
+src = ["mcp-server"]
+
+# 除外ディレクトリ
+exclude = [
+    ".venv",
+    "venv",
+    ".git",
+    "__pycache__",
+    "output",
+    "dist",
+    "build",
+]
+
+[tool.ruff.lint]
+# 有効にするルールセット
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes（未使用import, 未定義変数 等）
+    "I",    # isort（importの順序）
+    "B",    # flake8-bugbear（バグになりやすいパターン）
+    "C4",   # flake8-comprehensions（内包表記の改善）
+    "UP",   # pyupgrade（古い構文の検出）
+    "SIM",  # flake8-simplify（簡略化できるコードの検出）
+    "RUF",  # Ruff 独自ルール
+    "S",    # flake8-bandit（セキュリティ関連）
+    "PLC",  # Pylint convention（関数内importなど）
+    "BLE",  # flake8-blind-except（広すぎる例外捕捉）
+]
+
+# 無視するルール
+ignore = [
+    "E501",   # line-too-long: line-length で別途管理
+    "S101",   # assert の使用（テストコードで使うため）
+    "S603",   # subprocess call: 本プロジェクトでは不使用だが念のため除外
+    "S607",   # partial path in subprocess: 同上
+    "BLE001", # 広すぎる例外捕捉: 外部API呼び出しでは意図的に使用
+    "B008",   # do not perform function calls in default arguments
+    "SIM108", # ternary operator: 可読性優先で三項演算子を強制しない
+    "RUF012", # mutable class attributes: pptxの構造上許容
+    "RUF001", # 日本語全角括弧（）の文字列誤検知を無視（日本語プロジェクトのため）
+    "RUF002", # 日本語全角括弧（）のdocstring誤検知を無視
+    "RUF003", # 日本語全角括弧（）のコメント誤検知を無視
+    "S110",   # try-except-pass: python-pptxのAPI互換性対応で意図的に使用
+    "SIM105", # contextlib.suppress: 可読性優先でtry-except-passを許容
+    "E402",   # Module level import not at top: sys.path操作後のimportのため許容
+]
+
+# ファイルごとの除外設定
+[tool.ruff.lint.per-file-ignores]
+"mcp-server/pptx_builder.py" = [
+    "PLC0415", # 関数内import: python-pptxの型の都合上許容
+    "F401",    # 未使用import: MSO_SHAPE_TYPE は将来使用予定
+]
+"mcp-server/style_extractor.py" = [
+    "PLC0415", # 関数内import: 遅延import のため許容
+]
+"mcp-server/server.py" = [
+    "PLC0415", # 関数内import: traceback の遅延import
+]
+
+[tool.ruff.lint.isort]
+# import の整列設定
+known-first-party = ["pptx_builder", "slide_generator", "style_extractor"]
+force-sort-within-sections = true
+
+[tool.ruff.format]
+# フォーマット設定
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

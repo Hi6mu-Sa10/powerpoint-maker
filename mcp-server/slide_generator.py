@@ -6,8 +6,8 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from pathlib import Path
+import re
 from typing import Any
 
 import boto3
@@ -135,12 +135,21 @@ SYSTEM_PROMPT = """あなたはプロフェッショナルなプレゼンテー�
 def _call_bedrock(prompt: str, system: str = SYSTEM_PROMPT) -> str:
     """Bedrock Claude APIを呼び出してテキストを返す"""
     client = _get_bedrock_client()
-    model_id = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-5")
+    model_id = os.environ.get("BEDROCK_MODEL_ID", "jp.anthropic.claude-sonnet-4-6")
+
+    # システムプロンプトにキャッシュを適用（トークン削減）
+    system_with_cache = [
+        {
+            "type": "text",
+            "text": system,
+            "cache_control": {"type": "ephemeral"},
+        }
+    ]
 
     body = {
         "anthropic_version": "bedrock-2023-05-31",
         "max_tokens": 8192,
-        "system": system,
+        "system": system_with_cache,
         "messages": [
             {"role": "user", "content": prompt}
         ],

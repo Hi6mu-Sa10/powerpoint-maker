@@ -1,0 +1,95 @@
+name: Security & Lint Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # 毎週月曜日 00:00 UTC（日本時間 09:00）に定期実行
+    - cron: "0 0 * * 1"
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  # ────────────────────────────────────────
+  # Job 1: Lint チェック（ruff）
+  # ────────────────────────────────────────
+  lint:
+    name: "Lint (ruff)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff lint check
+        run: ruff check mcp-server/ --output-format=github
+        # --output-format=github によりGitHub上でインライン表示される
+
+      - name: Run ruff format check
+        run: ruff format --check mcp-server/
+        # フォーマットが崩れている場合に失敗
+
+  # ────────────────────────────────────────
+  # Job 2: セキュリティ脆弱性チェック（pip-audit）
+  # ────────────────────────────────────────
+  security:
+    name: "Security (pip-audit)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pip-audit pip-licenses
+
+      - name: Run pip-audit (CVE vulnerability scan)
+        run: |
+          pip-audit -r requirements.txt \
+            --format json \
+            --output pip-audit-report.json \
+            --desc on \
+            || true
+          # || true: 脆弱性があってもアーティファクト保存まで継続
+          pip-audit -r requirements.txt --desc on
+          # 人間が読める形式でも出力（ログに表示）
+
+      - name: Run pip-licenses (license check)
+        run: |
+          pip-licenses \
+            --from=mixed \
+            --format=markdown \
+            --output-file=licenses-report.md
+          cat licenses-report.md
+
+      - name: Upload audit report as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            pip-audit-report.json
+            licenses-report.md
+          retention-days: 90
+
+      - name: Fail if vulnerabilities found
+        run: |
+          pip-audit -r requirements.txt --desc on
+          # 脆弱性があれば終了コード1でワークフロー失敗

@@ -11,8 +11,7 @@ from typing import Any
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
-from pptx.util import Emu, Inches, Pt
-
+from pptx.util import Inches, Pt
 
 # ─────────────────────────────────────────────
 # デフォルトカラーパレット（スタイル未指定時）
@@ -95,8 +94,6 @@ def _add_text_box(
     wrap: bool = True,
 ) -> Any:
     """テキストボックスを追加"""
-    from pptx.util import Inches, Pt
-
     txBox = slide.shapes.add_textbox(
         Inches(left), Inches(top), Inches(width), Inches(height)
     )
@@ -123,11 +120,8 @@ def _add_rect(
     line_color: RGBColor | None = None,
 ) -> Any:
     """矩形を追加"""
-    from pptx.enum.shapes import MSO_SHAPE_TYPE
-    from pptx.util import Inches
-
     shape = slide.shapes.add_shape(
-        1,  # MSO_SHAPE_TYPE.RECTANGLE
+        1,  # MSO_AUTO_SHAPE_TYPE.RECTANGLE
         Inches(left),
         Inches(top),
         Inches(width),
@@ -155,8 +149,6 @@ def _render_title_slide(
     """タイトルスライドを生成"""
     slide_layout = prs.slide_layouts[6]  # Blank
     slide = prs.slides.add_slide(slide_layout)
-
-    W, H = 10.0, 7.5
 
     # 背景
     _set_bg_color(slide, palette["bg_title"])
