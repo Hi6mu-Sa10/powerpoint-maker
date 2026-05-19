@@ -159,7 +159,7 @@ def extract_style(pptx_path: str) -> dict[str, Any]:
 
     # 実際のスライドからテキストスタイルサンプルを抽出（最大3枚）
     sample_styles = []
-    for slide_idx, slide in enumerate(prs.slides[:3]):
+    for slide_idx, slide in enumerate(list(prs.slides)[:3]):
         slide_sample = {"slide_index": slide_idx, "shapes": []}
         for shape in slide.shapes:
             if not shape.has_text_frame:
@@ -194,7 +194,7 @@ def extract_style(pptx_path: str) -> dict[str, Any]:
 
     # 背景色サンプル（最大5枚）
     backgrounds = []
-    for slide in prs.slides[:5]:
+    for slide in list(prs.slides)[:5]:
         bg_info: dict[str, Any] = {"fill_type": None, "color_hex": None}
         try:
             fill = slide.background.fill

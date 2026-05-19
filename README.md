@@ -39,11 +39,14 @@ powerpoint-maker/
 
 ## セットアップ
 
-### 1. 依存ライブラリのインストール
+### 1. 仮想環境（venv）の作成と依存ライブラリのインストール
 
 ```bash
-pip install -r requirements.txt
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
 ```
+
+> **なぜvenvを使うか？** システムのPython環境を汚染せず、ライブラリのバージョン競合を防ぐためです。
 
 ### 2. 環境変数の設定
 
@@ -55,15 +58,17 @@ copy .env.example .env
 
 ```.env
 AWS_REGION=ap-northeast-1
-AWS_PROFILE=PS-Infra-595172360162
+AWS_PROFILE=<AWSプロファイル名>
 BEDROCK_ENDPOINT_URL=https://vpce-xxxxxxxxxx.bedrock-runtime.ap-northeast-1.vpce.amazonaws.com
-BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-5
+BEDROCK_MODEL_ID=jp.anthropic.claude-sonnet-4-6
 OUTPUT_DIR=output
 ```
 
 ### 3. MCPサーバーの登録（初回のみ）
 
 `cline_mcp_settings.json` に以下を追加（既に設定済みの場合は不要）:
+
+> **重要: `command` には venv内の `python.exe` の絶対パスを指定してください**
 
 ```json
 "powerpoint-maker": {
@@ -77,14 +82,14 @@ OUTPUT_DIR=output
   "disabled": false,
   "timeout": 120,
   "type": "stdio",
-  "command": "python",
-  "args": ["[Cドライブからのパス]\\powerpoint-maker\\mcp-server\\server.py"],
+  "command": "[リポジトリの絶対パス]\\.venv\\Scripts\\python.exe",
+  "args": ["[リポジトリの絶対パス]\\mcp-server\\server.py"],
   "env": {
     "AWS_REGION": "ap-northeast-1",
     "AWS_PROFILE": "[AWS SSOプロファイル]",
     "BEDROCK_ENDPOINT_URL": "[BedrockのVPCエンドポイント]",
-    "BEDROCK_MODEL_ID": "[使用するBedrockのモデルID]",
-    "OUTPUT_DIR": "[Cドライブからのパス]\\powerpoint-maker\\output",
+    "BEDROCK_MODEL_ID": "jp.anthropic.claude-sonnet-4-6",
+    "OUTPUT_DIR": "[リポジトリの絶対パス]\\output",
     "PYTHONIOENCODING": "utf-8"
   }
 }

@@ -9,13 +9,23 @@ PowerPoint自動生成MCPサーバーです。Amazon Bedrock (Claude Sonnet) と
 
 ユーザーから「セットアップして」「初期設定して」と言われたら、以下を順番に実行してください。
 
-### Step 1: 依存ライブラリの確認・インストール
+### Step 1: 仮想環境（venv）の作成と依存ライブラリのインストール
+
+venvが存在するか確認:
 ```bash
-pip show python-pptx python-dotenv boto3 mcp
+# Windows
+if exist .venv (echo exists) else (echo not found)
 ```
-不足があれば:
+
+存在しない場合は作成してインストール:
 ```bash
-pip install -r requirements.txt
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+```
+
+既存venvへの追加インストール（既にある場合）:
+```bash
+.venv\Scripts\pip install -r requirements.txt
 ```
 
 ### Step 2: .envファイルの確認
@@ -24,11 +34,13 @@ pip install -r requirements.txt
 - AWS_PROFILE (AWSプロファイル名)
 - AWS_REGION (リージョン、デフォルト: ap-northeast-1)
 - BEDROCK_ENDPOINT_URL (VPCエンドポイントURL)
-- BEDROCK_MODEL_ID (モデルID、デフォルト: us.anthropic.claude-sonnet-4-5)
+- BEDROCK_MODEL_ID (推論プロファイルID、デフォルト: jp.anthropic.claude-sonnet-4-6)
 
 ### Step 3: MCPサーバーの登録
 `%APPDATA%\Code\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json`
 に以下のエントリを追加してください（存在しない場合は作成）:
+
+**重要: `command` には venv内の python.exe の絶対パスを指定してください**
 
 ```json
 "powerpoint-maker": {
@@ -42,7 +54,7 @@ pip install -r requirements.txt
   "disabled": false,
   "timeout": 120,
   "type": "stdio",
-  "command": "python",
+  "command": "<このリポジトリのパス>\\.venv\\Scripts\\python.exe",
   "args": ["<このリポジトリのパス>\\mcp-server\\server.py"],
   "env": {
     "AWS_REGION": "<AWS_REGION値>",
@@ -57,7 +69,7 @@ pip install -r requirements.txt
 
 ### Step 4: 動作確認
 ```bash
-python mcp-server/pptx_builder.py
+.venv\Scripts\python mcp-server/pptx_builder.py
 ```
 `output/sample.pptx` が生成されれば成功です。
 
