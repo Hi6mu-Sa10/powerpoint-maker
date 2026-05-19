@@ -39,6 +39,15 @@ powerpoint-maker/
 
 ## セットアップ
 
+### 0. リポジトリをクローンする
+
+まずこのリポジトリをローカルにコピーします。
+
+```bash
+git clone https://github.com/Hi6mu-Sa10/powerpoint-maker.git
+cd powerpoint-maker
+```
+
 ### 1. 仮想環境（venv）の作成と依存ライブラリのインストール
 
 ```bash
