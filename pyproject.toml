@@ -20,22 +20,35 @@ exclude = [
 [tool.ruff.lint]
 # 有効にするルールセット
 select = [
-    "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings
-    "F",    # pyflakes（未使用import, 未定義変数 等）
-    "I",    # isort（importの順序）
-    "B",    # flake8-bugbear（バグになりやすいパターン）
-    "C4",   # flake8-comprehensions（内包表記の改善）
-    "UP",   # pyupgrade（古い構文の検出）
-    "SIM",  # flake8-simplify（簡略化できるコードの検出）
-    "RUF",  # Ruff 独自ルール
-    "S",    # flake8-bandit（セキュリティ関連）
-    "PLC",  # Pylint convention（関数内importなど）
-    "BLE",  # flake8-blind-except（広すぎる例外捕捉）
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes（未使用import, 未定義変数 等）
+    "I",      # isort（importの順序）
+    "B",      # flake8-bugbear（バグになりやすいパターン）
+    "C4",     # flake8-comprehensions（内包表記の改善）
+    "UP",     # pyupgrade（古い構文の検出）
+    "SIM",    # flake8-simplify（簡略化できるコードの検出）
+    "RUF",    # Ruff 独自ルール
+    "S",      # flake8-bandit（セキュリティ関連）
+    "PLC",    # Pylint convention（関数内importなど）
+    "BLE",    # flake8-blind-except（広すぎる例外捕捉）
+    "N",      # pep8-naming（命名規則）
+    "ANN",    # flake8-annotations（型アノテーション）
+    "DTZ",    # flake8-datetimez（タイムゾーン考慮）
+    "EM",     # flake8-errmsg（例外メッセージのf-string直書き禁止）
+    "TRY",    # tryceratops（例外ハンドリングの改善）
+    "RET",    # flake8-return（return文の改善）
+    "PERF",   # Perflint（パフォーマンス改善）
+    "T20",    # flake8-print（print文の検出）
+    "ARG",    # flake8-unused-arguments（未使用引数）
+    "PGH",    # pygrep-hooks
+    "PLR",    # Pylint refactor
+    "ASYNC",  # flake8-async
 ]
 
 # 無視するルール
 ignore = [
+    # ── 既存 ──────────────────────────────────────────────────────────────
     "E501",   # line-too-long: line-length で別途管理
     "S101",   # assert の使用（テストコードで使うため）
     "S603",   # subprocess call: 本プロジェクトでは不使用だが念のため除外
@@ -50,6 +63,56 @@ ignore = [
     "S110",   # try-except-pass: python-pptxのAPI互換性対応で意図的に使用
     "SIM105", # contextlib.suppress: 可読性優先でtry-except-passを許容
     "E402",   # Module level import not at top: sys.path操作後のimportのため許容
+    # ── 新規追加 ──────────────────────────────────────────────────────────
+    # docstring スタイル（日本語プロジェクトで句点強制は不要）
+    "D100",   # Missing docstring in public module
+    "D101",   # Missing docstring in public class
+    "D102",   # Missing docstring in public method
+    "D103",   # Missing docstring in public function: __main__ ブロック等で許容
+    "D104",   # Missing docstring in public package
+    "D200",   # No whitespaces allowed surrounding docstring text
+    "D203",   # incorrect-blank-line-before-class（D211と競合）
+    "D205",   # 1 blank line required between summary and description: 日本語スタイル許容
+    "D212",   # Multi-line docstring summary should start at first line（D213と競合）
+    "D213",   # Multi-line docstring summary should start at second line
+    "D400",   # First line should end with period: 日本語末尾句点を強制しない
+    "D401",   # First line should be in imperative mood: 日本語では不要
+    "D413",   # Missing blank line after last section: 日本語docstringで許容
+    "D415",   # First line should end with period/!/?: 日本語末尾句点を強制しない
+    # print 文（__main__ ブロックのCLI用途で許容）
+    "T201",   # print found: CLIスクリプトの出力で意図的に使用
+    # 型アノテーション
+    "ANN001", # Missing type annotation for function argument: 段階的導入
+    "ANN002", # Missing type annotation for *args
+    "ANN003", # Missing type annotation for **kwargs
+    "ANN201", # Missing return type annotation for public function: 段階的導入
+    "ANN202", # Missing return type annotation for private function
+    "ANN401", # Any type: python-pptxのAPI対応で意図的に使用
+    # trailing comma（スタイルは任意）
+    "COM812", # Missing trailing comma
+    # マジックナンバー（sys.argv の比較等は許容）
+    "PLR2004", # Magic value used in comparison
+    # boolean 引数（pptxのAPIで意図的に使用）
+    "FBT001", # Boolean type hint positional argument
+    "FBT002", # Boolean default value positional argument
+    # 関数の複雑度・引数数（MCPサーバー構造上やむを得ない）
+    "PLR0913", # Too many arguments
+    "PLR0911", # Too many return statements
+    "PLR0912", # Too many branches
+    "PLR0915", # Too many statements
+    "C901",    # Function is too complex
+    # コメントアウトされたコード（意図的なメモ）
+    "ERA001",  # Commented-out code
+    # 非同期関数内の同期I/O（MCPサーバー構造上許容）
+    "ASYNC240", # Blocking path method in async function
+    # TYPE_CHECKING用import変換は任意
+    "TC001",   # Move application import into TYPE_CHECKING block
+    "TC002",   # Move third-party import into TYPE_CHECKING block
+    "TC003",   # Move standard library import into TYPE_CHECKING block
+    # TRY系の細かい制約
+    "TRY002",  # Create your own exception: 既存のValueError等を許容
+    "TRY301",  # Abstract raise to an inner function
+    "TRY400",  # Use logging.exception instead of logging.error
 ]
 
 # ファイルごとの除外設定

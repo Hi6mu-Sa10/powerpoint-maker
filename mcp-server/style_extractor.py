@@ -2,6 +2,7 @@
 style_extractor.py
 既存のPPTXファイルからデザインスタイル情報を抽出するモジュール
 """
+
 from __future__ import annotations
 
 import json
@@ -23,7 +24,7 @@ def _rgb_to_hex(rgb: RGBColor | None) -> str | None:
 def _safe_pt(emu_val: Any) -> float | None:
     """EMU値をポイントに変換"""
     try:
-        return round(Pt(0).__class__(emu_val).pt, 1)  # type: ignore
+        return round(Pt(0).__class__(emu_val).pt, 1)  # type: ignore[attr-defined]
     except Exception:
         try:
             return round(emu_val / 12700, 1)
@@ -51,7 +52,8 @@ def extract_style(pptx_path: str) -> dict[str, Any]:
     """
     path = Path(pptx_path)
     if not path.exists():
-        raise FileNotFoundError(f"PPTXファイルが見つかりません: {pptx_path}")
+        msg = f"PPTXファイルが見つかりません: {pptx_path}"
+        raise FileNotFoundError(msg)
 
     prs = Presentation(str(path))
     style: dict[str, Any] = {}
@@ -71,10 +73,9 @@ def extract_style(pptx_path: str) -> dict[str, Any]:
         if theme_element is None:
             # slide_masterのXMLから直接取得
             import re
+
             xml_str = prs.slide_master.element.xml
-            color_matches = re.findall(
-                r'<a:(\w+)\s+val="([0-9A-Fa-f]{6})"', xml_str
-            )
+            color_matches = re.findall(r'<a:(\w+)\s+val="([0-9A-Fa-f]{6})"', xml_str)
             for name, val in color_matches[:10]:
                 theme_colors[name] = f"#{val.upper()}"
     except Exception:
@@ -122,12 +123,13 @@ def extract_style(pptx_path: str) -> dict[str, Any]:
 
     # slide_master のタイトル/本文フォント名を取得
     try:
-        txStyles = prs.slide_master.element.find(
+        tx_styles = prs.slide_master.element.find(
             "{http://schemas.openxmlformats.org/presentationml/2006/main}txStyles"
         )
-        if txStyles is not None:
+        if tx_styles is not None:
             import re
-            ts_xml = txStyles.xml if hasattr(txStyles, "xml") else ""
+
+            ts_xml = tx_styles.xml if hasattr(tx_styles, "xml") else ""
             latin_matches = re.findall(r'<a:latin[^>]+typeface="([^"]+)"', ts_xml)
             if latin_matches:
                 fonts["title"] = latin_matches[0]
